@@ -6,9 +6,15 @@
     
     <p class="text-muted mb-4">Métricas principales de PadelManager.</p>
     <p v-if="errorMensaje" style="color: red; font-weight: bold;">{{ errorMensaje }}</p>
+    <div v-if="cargando" class="text-center my-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2 text-muted" style="font-weight: 500;">Trayendo datos de los jugadores...</p>
+    </div>
 
-    <div class="chart-container shadow-sm border rounded">
-      <Bar :data="chartData" :options="chartOptions" />
+<div v-else class="chart-container shadow-sm border rounded">
+        <Bar :data="chartData" :options="chartOptions" />
     </div>
 
   </div>
@@ -52,10 +58,14 @@ const chartOptions = ref({
   }
 })
 
+// Variable para controlar el spinner (AGREGAR ESTA LÍNEA)
+const cargando = ref(true)
+
 // Variable para atajar errores si se cae la base de datos
 const errorMensaje = ref('')
 
 const cargarEstadisticas = async () => {
+ cargando.value = true
   try {
     // 1. Llamada a la API
     const respuesta = await fetch(`${import.meta.env.VITE_MOCKAPI_URL}/Players`)
@@ -89,7 +99,8 @@ const cargarEstadisticas = async () => {
   } catch (error) {
     console.error("Error al traer datos:", error)
     errorMensaje.value = 'No se pudieron cargar las estadísticas. Revisa la conexión al servidor.'
-  }
+  } finally {
+    cargando.value = false
 }
 // Ejecutamos la función apenas el componente se monta en pantalla
 onMounted(() => {
