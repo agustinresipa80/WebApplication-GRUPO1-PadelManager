@@ -187,4 +187,14 @@ onMounted(() => {
   background-color: white;
   padding: 1.5rem;
 }
+
+@media (max-width: 768px) {
+  .chart-container {
+    height: 300px;
+    padding: 1rem;
+  }
+  .page {
+    padding: 1rem;
+  }
+}
 </style>
