@@ -67,6 +67,8 @@ router.beforeEach((to, from, next) => {
   // Necesitamos acceder al store DESPUÉS de que Pinia esté montado
   const authStore = useAuthStore()
 
+
+ 
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
     return next({ name: 'Login' })
   }
