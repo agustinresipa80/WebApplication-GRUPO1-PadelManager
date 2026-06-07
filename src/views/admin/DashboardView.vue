@@ -16,7 +16,22 @@
 <div v-else class="chart-container shadow-sm border rounded">
         <Bar :data="chartData" :options="chartOptions" />
     </div>
+<div v-if="!cargando && !errorMensaje" class="mt-5 text-center">
+      <button 
+        @click="generarAnalisisIA" 
+        class="btn btn-success btn-lg shadow-sm" 
+        :disabled="cargandoIA"
+      >
+        <span v-if="cargandoIA" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        🤖 Generar Análisis Estratégico con IA
+      </button>
 
+      <div v-if="analisisIA" class="alert alert-info mt-4 text-start shadow-sm border-0 bg-light">
+        <h5 class="alert-heading text-primary">Recomendación de PadelManager AI</h5>
+        <hr>
+        <p class="mb-0" style="font-size: 1.1rem; line-height: 1.5;">{{ analisisIA }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -64,6 +79,11 @@ const cargando = ref(true)
 // Variable para atajar errores si se cae la base de datos
 const errorMensaje = ref('')
 
+// --- VARIABLES PARA LA IA ---
+const datosConteo = ref({}) 
+const analisisIA = ref('')
+const cargandoIA = ref(false)
+
 const cargarEstadisticas = async () => {
  cargando.value = true
   try {
@@ -85,6 +105,8 @@ const cargarEstadisticas = async () => {
     // Debug: Esto te ayuda a ver en la consola si el conteo es correcto
     console.log("Conteo final para el gráfico:", conteo)
 
+    datosConteo.value = conteo // AGREGAMOS ESTO PARA LA IA
+
     // 3. Asignación de datos al gráfico
     // Usamos esta forma para asegurar que Vue detecte el cambio y actualice el gráfico
     chartData.value = {
@@ -102,7 +124,44 @@ const cargarEstadisticas = async () => {
   } finally {
     cargando.value = false
 }
+}
+// --- FUNCIÓN DE IA ---
+const generarAnalisisIA = async () => {
+  if (Object.keys(datosConteo.value).length === 0) return 
+
+  cargandoIA.value = true
+  analisisIA.value = '' 
+
+  try {
+    const prompt = `Actúa como un experto administrador de clubes de pádel. Aquí tienes la cantidad de jugadores inscriptos por nivel: Principiantes: ${datosConteo.value['Principiante']}, Intermedios: ${datosConteo.value['Intermedio']}, Avanzados: ${datosConteo.value['Avanzado']}. Dame una recomendación estratégica corta (máximo 3 renglones) sobre qué tipo de torneo, clínica o promoción debería organizar este fin de semana para maximizar las ganancias.`
+
+    const respuesta = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7
+      })
+    })
+
+    if (!respuesta.ok) throw new Error('Fallo en la comunicación con Groq')
+
+    const data = await respuesta.json()
+    analisisIA.value = data.choices[0].message.content
+
+  } catch (error) {
+    console.error("Error IA:", error)
+    analisisIA.value = 'No se pudo generar el consejo inteligente en este momento. Intente más tarde.'
+  } finally {
+    cargandoIA.value = false
+  }
+}
 // Ejecutamos la función apenas el componente se monta en pantalla
+
 onMounted(() => {
   cargarEstadisticas()
 })
