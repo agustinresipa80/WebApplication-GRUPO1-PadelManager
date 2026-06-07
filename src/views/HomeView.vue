@@ -57,7 +57,7 @@ const error   = ref('')
 
 async function fetchTorneos() {
   try {
-    const res = await fetch(`${import.meta.env.VITE_MOCKAPI_URL}/tournaments`)
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/tournaments`)
     if (!res.ok) throw new Error('No se pudieron cargar los torneos')
     torneos.value = await res.json()
   } catch (err) {
