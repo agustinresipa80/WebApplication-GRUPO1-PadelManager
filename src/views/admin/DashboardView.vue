@@ -78,6 +78,7 @@ const cargando = ref(true)
 
 // Variable para atajar errores si se cae la base de datos
 const errorMensaje = ref('')
+const API_URL = `${import.meta.env.VITE_MOCKAPI_URL}/Players`
 
 // --- VARIABLES PARA LA IA ---
 const datosConteo = ref({}) 
@@ -88,7 +89,7 @@ const cargarEstadisticas = async () => {
  cargando.value = true
   try {
     // 1. Llamada a la API
-    const respuesta = await fetch(`${import.meta.env.VITE_MOCKAPI_URL}/Players`)
+    const respuesta = await fetch(API_URL)
     if (!respuesta.ok) throw new Error('Error al conectar')
     
     const jugadores = await respuesta.json()
