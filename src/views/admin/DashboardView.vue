@@ -27,7 +27,7 @@
          Generar Análisis Estratégico con IA
       </button>
 
-      <div v-if="analisisIA" class="alert alert-info mt-4 text-start shadow-sm border-0 bg-light">
+      <div v-if="analisisIA" class="alert alert-info mt-4 text-start shadow-sm border-0 border-start border-4 border-primary bg-light">
         <h5 class="alert-heading text-primary">Recomendación de PadelManager AI</h5>
         <hr>
         <p class="mb-0" style="font-size: 1.1rem; line-height: 1.5;">{{ analisisIA }}</p>
