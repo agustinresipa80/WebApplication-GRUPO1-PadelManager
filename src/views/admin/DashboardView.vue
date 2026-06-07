@@ -104,9 +104,6 @@ const cargarEstadisticas = async () => {
       else conteo['Avanzado']++
     })
 
-    // Debug: Esto te ayuda a ver en la consola si el conteo es correcto
-    console.log("Conteo final para el gráfico:", conteo)
-
     datosConteo.value = conteo // AGREGAMOS ESTO PARA LA IA
 
     // 3. Asignación de datos al gráfico
