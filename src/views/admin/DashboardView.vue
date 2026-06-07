@@ -93,7 +93,7 @@ const cargarEstadisticas = async () => {
     if (!respuesta.ok) throw new Error('Error al conectar')
     
     const jugadores = await respuesta.json()
-
+ if (jugadores.length === 0) throw new Error('No hay jugadores inscriptos todavía.')
     // 2. Lógica para agrupar: clasificamos por nivel
     const conteo = { 'Principiante': 0, 'Intermedio': 0, 'Avanzado': 0 }
     
