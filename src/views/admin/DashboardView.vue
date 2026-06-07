@@ -5,6 +5,7 @@
     </div>
     
     <p class="text-muted mb-4">Métricas principales de PadelManager.</p>
+    <p v-if="errorMensaje" style="color: red; font-weight: bold;">{{ errorMensaje }}</p>
 
     <div class="chart-container shadow-sm border rounded">
       <Bar :data="chartData" :options="chartOptions" />
@@ -14,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Bar } from 'vue-chartjs'
 import { 
   Chart as ChartJS, 
@@ -29,15 +30,15 @@ import {
 // Registramos los módulos de Chart.js
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
-// Datos falsos (Mock) para probar el gráfico
+// // Datos que se van a llenar dinámicamente con MockAPI
 const chartData = ref({
-  labels: ['1ra', '2da', '3ra', '4ta', '5ta', '6ta'],
+  labels: [], // Lo vaciamos
   datasets: [
     {
       label: 'Parejas Inscriptas por Categoría',
-      backgroundColor: '#0d6efd', // Azul PadelManager
+      backgroundColor: '#0d6efd',
       borderRadius: 4,
-      data: [4, 8, 12, 16, 10, 6] 
+      data: [] // Lo vaciamos
     }
   ]
 })
@@ -49,6 +50,50 @@ const chartOptions = ref({
   plugins: {
     legend: { position: 'top' }
   }
+})
+
+// Variable para atajar errores si se cae la base de datos
+const errorMensaje = ref('')
+
+const cargarEstadisticas = async () => {
+  try {
+    // 1. Llamada a la API
+    const respuesta = await fetch(`${import.meta.env.VITE_MOCKAPI_URL}/Players`)
+    if (!respuesta.ok) throw new Error('Error al conectar')
+    
+    const jugadores = await respuesta.json()
+
+    // 2. Lógica para agrupar: clasificamos por nivel
+    const conteo = { 'Principiante': 0, 'Intermedio': 0, 'Avanzado': 0 }
+    
+    jugadores.forEach(j => {
+      if (j.level < 40) conteo['Principiante']++
+      else if (j.level < 80) conteo['Intermedio']++
+      else conteo['Avanzado']++
+    })
+
+    // Debug: Esto te ayuda a ver en la consola si el conteo es correcto
+    console.log("Conteo final para el gráfico:", conteo)
+
+    // 3. Asignación de datos al gráfico
+    // Usamos esta forma para asegurar que Vue detecte el cambio y actualice el gráfico
+    chartData.value = {
+      ...chartData.value,
+      labels: Object.keys(conteo),
+      datasets: [{
+        ...chartData.value.datasets[0],
+        data: Object.values(conteo)
+      }]
+    }
+    
+  } catch (error) {
+    console.error("Error al traer datos:", error)
+    errorMensaje.value = 'No se pudieron cargar las estadísticas. Revisa la conexión al servidor.'
+  }
+}
+// Ejecutamos la función apenas el componente se monta en pantalla
+onMounted(() => {
+  cargarEstadisticas()
 })
 </script>
 
