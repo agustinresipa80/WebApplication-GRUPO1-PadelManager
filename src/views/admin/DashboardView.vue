@@ -21,9 +21,10 @@
         @click="generarAnalisisIA" 
         class="btn btn-success btn-lg shadow-sm" 
         :disabled="cargandoIA"
+        title="Obtiene un consejo basado en los datos actuales"
       >
         <span v-if="cargandoIA" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        🤖 Generar Análisis Estratégico con IA
+         Generar Análisis Estratégico con IA
       </button>
 
       <div v-if="analisisIA" class="alert alert-info mt-4 text-start shadow-sm border-0 bg-light">
