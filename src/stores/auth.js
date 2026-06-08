@@ -17,6 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
    * MockAPI no tiene auth real, así que filtramos del lado cliente.
    */
   async function login(email, password) {
+    console.log('URL:', import.meta.env.VITE_API_URL)
     const url = `${import.meta.env.VITE_API_URL}/users?email=${encodeURIComponent(email)}`
     const res  = await fetch(url)
 
