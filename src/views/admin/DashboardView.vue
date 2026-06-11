@@ -141,13 +141,18 @@ const generarAnalisisIA = async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        model: 'llama-3.1-8b-instant', // <--- ACÁ ESTABA EL ERROR. Usamos el modelo actualizado.
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7
       })
     })
 
-    if (!respuesta.ok) throw new Error('Fallo en la comunicación con Groq')
+    // Agregamos esto para ver el error real si llega a fallar de nuevo
+    if (!respuesta.ok) {
+        const errorDetail = await respuesta.json()
+        console.error("Detalle del error de Groq:", errorDetail)
+        throw new Error('Fallo en la comunicación con Groq')
+    }
 
     const data = await respuesta.json()
     analisisIA.value = data.choices[0].message.content
