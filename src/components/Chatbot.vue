@@ -5,10 +5,12 @@
         <span>🎾 Asistente Padel</span>
         <button @click="isOpen = false" class="close-btn">✖</button>
       </div>
-      
       <div class="chat-messages">
         <div v-for="(msg, index) in historial" :key="index" :class="['message', msg.role]">
           {{ msg.content }}
+        </div>
+        <div v-if="isLoading" class="message assistant">
+          Escribiendo... 🎾
         </div>
       </div>
 
@@ -34,24 +36,63 @@ import { ref } from 'vue';
 // Estados del componente
 const isOpen = ref(false);
 const nuevoMensaje = ref('');
+const isLoading = ref(false); // Para mostrar que la IA está cargando
+
 const historial = ref([
   { role: 'assistant', content: '¡Hola! Soy tu asistente de PadelManager. ¿Tenés alguna duda con las reglas o los torneos?' }
 ]);
 
-// Función para enviar a Groq (la lógica la armamos en el próximo paso)
 const enviarMensaje = async () => {
-  if (!nuevoMensaje.value.trim()) return;
+  if (!nuevoMensaje.value.trim() || isLoading.value) return;
 
-  // 1. Agregamos el mensaje del usuario al chat
-  historial.value.push({ role: 'user', content: nuevoMensaje.value });
-  
   const mensajeEnviado = nuevoMensaje.value;
-  nuevoMensaje.value = ''; // Limpiamos el input
+  historial.value.push({ role: 'user', content: mensajeEnviado });
+  nuevoMensaje.value = ''; 
+  isLoading.value = true;
 
-  // Acá después vamos a meter el fetch a la API de Groq
-  setTimeout(() => {
-    historial.value.push({ role: 'assistant', content: 'Acá iría la respuesta inteligente de Groq sobre: ' + mensajeEnviado });
-  }, 1000);
+  try {
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    
+    // Llamada a Groq con el modelo 8b-instant (más estable)
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant', 
+        messages: [
+          { 
+            role: 'system', 
+            content: 'Sos un asistente virtual experto en pádel para la plataforma PadelManager. Respondé de forma concisa, amigable y en español argentino.' 
+          },
+          ...historial.value.map(msg => ({ role: msg.role, content: msg.content }))
+        ],
+        temperature: 0.7,
+        max_tokens: 200
+      })
+    });
+
+    const data = await response.json();
+    
+    // Si la API responde con error, el log nos dirá por qué
+    if (!response.ok) {
+      console.error("Error desde Groq:", data);
+      throw new Error(data.error?.message || "Error en la API");
+    }
+
+    historial.value.push({ role: 'assistant', content: data.choices[0].message.content });
+
+  } catch (error) {
+    console.error("Error capturado:", error);
+    historial.value.push({ 
+      role: 'assistant', 
+      content: 'No pude conectarme con la IA. Verificá que la API Key sea válida.' 
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 
