@@ -38,7 +38,7 @@
           <label>Asignar a Torneo:</label>
           <select v-model="formulario.tournamentId" required>
             <option value="" disabled>Seleccione un torneo...</option>
-            <option v-for="t in torneos" :key="t.id" :value="t.id">
+            <option v-for="t in torneosDisponiblesFiltrados" :key="t.id" :value="t.id">
               {{ t.name }} ({{ t.category }})
             </option>
           </select>
@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed} from 'vue';
 
 // Rutas dinámicas basadas en el .env que ya configuraste
 const API_JUGADORES = `${import.meta.env.VITE_API_URL}/players`;
@@ -111,6 +111,24 @@ const formulario = ref({
   category: '4ta',
   points: 0,
   tournamentId: ''
+});
+
+// Mapeo para convertir el texto "1ra", "2da" en números puros (1, 2, 3...)
+const obtenerNumeroCategoria = (catTexto) => {
+  return parseInt(catTexto) || 0;
+};
+
+// Torneos filtrados que aparecen en el select según la categoría que elegiste para la pareja
+const torneosDisponiblesFiltrados = computed(() => {
+  if (!formulario.value.category) return torneos.value;
+  
+  const catJugadorNum = obtenerNumeroCategoria(formulario.value.category);
+  
+  return torneos.value.filter(torneo => {
+    const catTorneoNum = obtenerNumeroCategoria(torneo.category);
+    // Permite solo si el número del torneo es MAYOR o IGUAL (4ta, 5ta, 6ta...)
+    return catTorneoNum >= catJugadorNum;
+  });
 });
 
 // Traer la lista de parejas (GET) y de torneos para el select
