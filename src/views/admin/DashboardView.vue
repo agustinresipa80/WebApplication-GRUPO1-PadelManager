@@ -79,8 +79,7 @@ const cargando = ref(true)
 
 // Variable para atajar errores si se cae la base de datos
 const errorMensaje = ref('')
-const API_URL = `${import.meta.env.VITE_MOCKAPI_URL}/Players`
-
+const API_URL = `${import.meta.env.VITE_API_URL}/Players` 
 // --- VARIABLES PARA LA IA ---
 const datosConteo = ref({}) 
 const analisisIA = ref('')
