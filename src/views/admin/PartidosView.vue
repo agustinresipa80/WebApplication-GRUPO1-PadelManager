@@ -174,7 +174,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 
-const API = import.meta.env.VITE_MOCKAPI_URL
+const API = import.meta.env.VITE_API_URL
 
 const matches     = ref([])
 const players     = ref([])
