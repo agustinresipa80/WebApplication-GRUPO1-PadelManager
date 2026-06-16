@@ -79,7 +79,7 @@ const cargando = ref(true)
 
 // Variable para atajar errores si se cae la base de datos
 const errorMensaje = ref('')
-const API_URL = `${import.meta.env.VITE_API_URL}/Players` 
+const API_URL = `${import.meta.env.VITE_API_URL}/players` 
 // --- VARIABLES PARA LA IA ---
 const datosConteo = ref({}) 
 const analisisIA = ref('')
@@ -95,13 +95,11 @@ const cargarEstadisticas = async () => {
     const jugadores = await respuesta.json()
  if (jugadores.length === 0) throw new Error('No hay jugadores inscriptos todavía.')
     // 2. Lógica para agrupar: clasificamos por nivel
-    const conteo = { 'Principiante': 0, 'Intermedio': 0, 'Avanzado': 0 }
-    
-    jugadores.forEach(j => {
-      if (j.level < 40) conteo['Principiante']++
-      else if (j.level < 80) conteo['Intermedio']++
-      else conteo['Avanzado']++
-    })
+    const conteo = {}
+jugadores.forEach(j => {
+  const cat = j.category || 'Sin categoría'
+  conteo[cat] = (conteo[cat] || 0) + 1
+})
 
     datosConteo.value = conteo // AGREGAMOS ESTO PARA LA IA
 
@@ -131,7 +129,8 @@ const generarAnalisisIA = async () => {
   analisisIA.value = '' 
 
   try {
-    const prompt = `Actúa como un experto administrador de clubes de pádel. Aquí tienes la cantidad de jugadores inscriptos por nivel: Principiantes: ${datosConteo.value['Principiante']}, Intermedios: ${datosConteo.value['Intermedio']}, Avanzados: ${datosConteo.value['Avanzado']}. Dame una recomendación estratégica corta (máximo 3 renglones) sobre qué tipo de torneo, clínica o promoción debería organizar este fin de semana para maximizar las ganancias.`
+    const resumen = Object.entries(datosConteo.value).map(([cat, cant]) => `${cat}: ${cant}`).join(', ')
+    const prompt = `Actúa como un experto administrador de clubes de pádel. Aquí tienes la cantidad de parejas inscriptas por categoría: ${resumen}. Dame una recomendación estratégica corta (máximo 3 renglones) sobre qué tipo de torneo o promoción debería organizar este fin de semana para maximizar la participación.`
 
     const respuesta = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
