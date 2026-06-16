@@ -24,6 +24,9 @@
       <span class="user-badge" :class="authStore.isAdmin ? 'badge-admin' : 'badge-player'">
         {{ authStore.isAdmin ? 'Admin' : 'Jugador' }}
       </span>
+      <button class="btn-theme" @click="themeStore.toggle()" :title="themeStore.dark ? 'Modo claro' : 'Modo oscuro'">
+       {{ themeStore.dark ? '☀️' : '🌙' }}
+      </button>
       <button class="btn-logout" @click="handleLogout">Salir</button>
     </div>
   </nav>
@@ -32,7 +35,9 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 
+const themeStore = useThemeStore()
 const authStore = useAuthStore()
 const router    = useRouter()
 
@@ -131,6 +136,24 @@ function handleLogout() {
 }
 
 .btn-logout:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.btn-theme {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.btn-theme:hover {
   background: rgba(255,255,255,0.25);
 }
 </style>

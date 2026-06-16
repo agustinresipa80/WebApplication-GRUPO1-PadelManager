@@ -129,3 +129,25 @@ tr:hover td { background: #f9fbff; }
 .alert { padding: 0.75rem 1rem; border-radius: var(--radius); font-size: 0.875rem; }
 .alert-error   { background: #ffeaea; border: 1px solid #ffb3b3; color: var(--color-danger); }
 .alert-success { background: #e8f5e9; border: 1px solid #a5d6a7; color: var(--color-secondary); }
+
+/* ── Tema oscuro ── */
+[data-theme="dark"] {
+  --color-bg:      #1a1a2e;
+  --color-surface: #16213e;
+  --color-border:  #2d3561;
+  --color-text:    #e0e0e0;
+  --color-text-muted: #9090a0;
+  --color-primary: #4a9eff;
+}
+
+[data-theme="dark"] .navbar {
+  background: #0f3460;
+}
+
+[data-theme="dark"] table th {
+  background: #1e2a4a;
+}
+
+[data-theme="dark"] tr:hover td {
+  background: #1e2a4a;
+}
