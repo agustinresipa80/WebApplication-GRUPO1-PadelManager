@@ -104,6 +104,7 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const API = import.meta.env.VITE_API_URL
 
+const allPlayers = ref([])
 const pair     = ref(null)
 const matches  = ref([])
 const loading  = ref(true)
@@ -134,10 +135,10 @@ const winPct = computed(() =>
 )
 
 function getRival(match) {
-  // No tenemos la lista de jugadores acá, usamos los IDs como fallback
-  // pero si querés los nombres, podés extender cargando players
-  if (match.pair1Id === pair.value?.id) return `Pareja ID: ${match.pair2Id}`
-  return `Pareja ID: ${match.pair1Id}`
+  const rivalId = match.pair1Id === pair.value?.id ? match.pair2Id : match.pair1Id
+  const rival = allPlayers.value.find(p => p.id === rivalId)
+  if (!rival) return `Pareja ID: ${rivalId}`
+  return `${rival.player1} / ${rival.player2}`
 }
 
 function capitalize(str) {
@@ -159,6 +160,7 @@ async function loadData() {
     ])
 
     const players = await playersRes.json()
+    allPlayers.value = players
     matches.value = await matchesRes.json()
 
     // Intentamos matchear por nombre del usuario (field "name" del store)
