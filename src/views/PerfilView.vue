@@ -102,7 +102,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
-const API = import.meta.env.VITE_MOCKAPI_URL
+const API = import.meta.env.VITE_API_URL
 
 const pair     = ref(null)
 const matches  = ref([])
@@ -165,13 +165,7 @@ async function loadData() {
     // o por un campo playerId si existe en el modelo
     const userName = user?.name?.toLowerCase() || ''
 
-    pair.value =
-      players.find(p => p.userId === user?.id) ||
-      players.find(p =>
-        p.player1?.toLowerCase().includes(userName) ||
-        p.player2?.toLowerCase().includes(userName)
-      ) ||
-      null
+    pair.value = players.length > 0 ? players[0] : null
 
   } catch (e) {
     console.error('Error cargando perfil:', e)
