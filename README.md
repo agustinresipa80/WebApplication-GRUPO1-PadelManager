@@ -24,7 +24,7 @@ npm install
 
 # 3. Configurar variables de entorno
 cp .env.example .env
-# Editar .env con tu URL de MockAPI y API key de Groq
+# Editar .env con tu URL de API y API key de Groq
 
 # 4. Correr en desarrollo
 npm run dev
@@ -33,7 +33,7 @@ npm run dev
 ## Variables de entorno
 
 ```
-VITE_MOCKAPI_URL=https://TU_PROJECT_ID.mockapi.io
+VITE_API_URL=https://TU_PROJECT_ID.mockapi.io
 VITE_GROQ_API_KEY=tu_api_key
 ```
 
@@ -70,6 +70,6 @@ src/
 | Nombre | Responsabilidad |
 |---|---|
 | Integrante 1 | Arquitectura, Router, Auth, NavBar |
-| Integrante 2 | MockAPI, ABM Torneos, ABM Jugadores |
+| Integrante 2 | API, ABM Torneos, ABM Jugadores |
 | Integrante 3 | ABM Partidos, Fixture, Perfil |
 | Integrante 4 | Dashboard, Integración IA, Estilos |
