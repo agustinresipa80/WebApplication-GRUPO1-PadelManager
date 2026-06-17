@@ -141,7 +141,7 @@ const usuarios         = ref([])
 const cargando         = ref(false)
 const errorMsg         = ref(null)
 const editandoId       = ref(null)
-
+const modoManual = ref(false)
 const formulario = ref({
   user1Id:      '',
   user2Id:      '',
