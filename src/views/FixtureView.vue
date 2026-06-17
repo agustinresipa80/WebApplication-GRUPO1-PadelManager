@@ -83,7 +83,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const API   = import.meta.env.VITE_MOCKAPI_URL
+const API   = import.meta.env.VITE_API_URL
 
 const matches    = ref([])
 const players    = ref([])
