@@ -10,25 +10,52 @@
       <h2>{{ editandoId ? '📝 Editar Pareja' : '➕ Registrar Nueva Pareja' }}</h2>
       <form @submit.prevent="guardarJugador" class="jugador-form">
 
-        <div class="form-group">
-          <label>Jugador 1 (usuario registrado):</label>
-          <select v-model="formulario.user1Id" required @change="onUser1Change">
-            <option value="" disabled>Seleccioná un usuario...</option>
-            <option v-for="u in usuariosJugadores" :key="u.id" :value="u.id" :disabled="u.id === formulario.user2Id">
-              {{ u.name }} ({{ u.email }})
-            </option>
-          </select>
-        </div>
+        <!-- Toggle de modo -->
+<div class="form-group-full">
+  <label>Modo de registro:</label>
+  <div class="toggle-modo">
+    <button type="button" :class="['btn-modo', !modoManual ? 'active' : '']" @click="modoManual = false">
+      👤 Usuario registrado
+    </button>
+    <button type="button" :class="['btn-modo', modoManual ? 'active' : '']" @click="modoManual = true">
+      ✏️ Ingresar manualmente
+    </button>
+  </div>
+</div>
 
-        <div class="form-group">
-          <label>Jugador 2 (usuario registrado):</label>
-          <select v-model="formulario.user2Id" required @change="onUser2Change">
-            <option value="" disabled>Seleccioná un usuario...</option>
-            <option v-for="u in usuariosJugadores" :key="u.id" :value="u.id" :disabled="u.id === formulario.user1Id">
-              {{ u.name }} ({{ u.email }})
-            </option>
-          </select>
-        </div>
+        <!-- Modo usuario registrado -->
+        <template v-if="!modoManual">
+          <div class="form-group">
+            <label>Jugador 1 (usuario registrado):</label>
+            <select v-model="formulario.user1Id" @change="onUser1Change">
+              <option value="">Seleccioná un usuario...</option>
+              <option v-for="u in usuariosJugadores" :key="u.id" :value="u.id" :disabled="u.id === formulario.user2Id">
+                {{ u.name }} ({{ u.email }})
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Jugador 2 (usuario registrado):</label>
+            <select v-model="formulario.user2Id" @change="onUser2Change">
+              <option value="">Seleccioná un usuario...</option>
+              <option v-for="u in usuariosJugadores" :key="u.id" :value="u.id" :disabled="u.id === formulario.user1Id">
+                {{ u.name }} ({{ u.email }})
+              </option>
+            </select>
+          </div>
+        </template>
+
+        <!-- Modo manual -->
+        <template v-else>
+          <div class="form-group">
+            <label>Jugador 1 (Nombre completo):</label>
+            <input type="text" v-model="formulario.player1" placeholder="Ej: Juan Pérez" />
+          </div>
+          <div class="form-group">
+            <label>Jugador 2 (Nombre completo):</label>
+            <input type="text" v-model="formulario.player2" placeholder="Ej: Martín Gómez" />
+          </div>
+        </template>
 
         <div class="form-group">
           <label>Categoría de la Pareja:</label>
@@ -244,4 +271,25 @@ onMounted(cargarDatos)
 .btn-edit { background: #ffc107; border: none; padding: 6px 12px; margin-right: 5px; border-radius: 4px; cursor: pointer; color: #000; }
 .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
 .error-banner { background: #dc3545; color: white; padding: 10px; border-radius: 4px; margin-top: 10px; }
+
+.toggle-modo {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-modo {
+  padding: 6px 16px;
+  border: 1px solid #555;
+  background: #2d2d2d;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.btn-modo.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
 </style>
