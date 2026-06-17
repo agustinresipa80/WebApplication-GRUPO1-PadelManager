@@ -7,7 +7,9 @@
     <ul class="navbar-links">
       <!-- Links comunes (jugador y admin) -->
       <li><RouterLink to="/">Torneos</RouterLink></li>
-      <li><RouterLink to="/perfil">Mi Perfil</RouterLink></li>
+      <li v-if="!authStore.isAdmin">
+          <RouterLink to="/perfil">Mi Perfil</RouterLink>
+      </li>
 
       <!-- Links exclusivos del admin -->
       <template v-if="authStore.isAdmin">
