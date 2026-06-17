@@ -176,8 +176,9 @@ async function loadData() {
     // Intentamos matchear por nombre del usuario (field "name" del store)
     // o por un campo playerId si existe en el modelo
     const userName = user?.name?.toLowerCase() || ''
-
-    pair.value = players.length > 0 ? players[0] : null
+    pair.value = players.find(p => 
+    p.user1Id === user?.id || p.user2Id === user?.id
+    ) || null
 
   } catch (e) {
     console.error('Error cargando perfil:', e)

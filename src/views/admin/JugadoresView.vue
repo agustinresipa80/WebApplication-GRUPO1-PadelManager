@@ -6,18 +6,28 @@
 
     <p v-if="errorMsg" class="error-banner">❌ Error: {{ errorMsg }}</p>
 
-    <!-- FORMULARIO DE ALTA Y EDICIÓN -->
     <div class="form-container">
       <h2>{{ editandoId ? '📝 Editar Pareja' : '➕ Registrar Nueva Pareja' }}</h2>
       <form @submit.prevent="guardarJugador" class="jugador-form">
+
         <div class="form-group">
-          <label>Jugador 1 (Nombre completo):</label>
-          <input type="text" v-model="formulario.player1" required placeholder="Ej: Juan Pérez" />
+          <label>Jugador 1 (usuario registrado):</label>
+          <select v-model="formulario.user1Id" required @change="onUser1Change">
+            <option value="" disabled>Seleccioná un usuario...</option>
+            <option v-for="u in usuariosJugadores" :key="u.id" :value="u.id" :disabled="u.id === formulario.user2Id">
+              {{ u.name }} ({{ u.email }})
+            </option>
+          </select>
         </div>
 
         <div class="form-group">
-          <label>Jugador 2 (Nombre completo):</label>
-          <input type="text" v-model="formulario.player2" required placeholder="Ej: Martín Gómez" />
+          <label>Jugador 2 (usuario registrado):</label>
+          <select v-model="formulario.user2Id" required @change="onUser2Change">
+            <option value="" disabled>Seleccioná un usuario...</option>
+            <option v-for="u in usuariosJugadores" :key="u.id" :value="u.id" :disabled="u.id === formulario.user1Id">
+              {{ u.name }} ({{ u.email }})
+            </option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -37,7 +47,7 @@
         <div class="form-group-full">
           <label>Asignar a Torneo:</label>
           <select v-model="formulario.tournamentId" required>
-            <option value="" disabled>Seleccione un torneo...</option>
+            <option value="" disabled>Seleccioná un torneo...</option>
             <option v-for="t in torneosDisponiblesFiltrados" :key="t.id" :value="t.id">
               {{ t.name }} ({{ t.category }})
             </option>
@@ -55,11 +65,10 @@
       </form>
     </div>
 
-    <!-- TABLA DE VISUALIZACIÓN -->
     <div class="table-container">
       <h2>📋 Parejas Registradas</h2>
       <p v-if="cargando">Buscando registros en el servidor...</p>
-      
+
       <table v-else class="jugadores-table">
         <thead>
           <tr>
@@ -93,124 +102,132 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed} from 'vue';
+import { ref, onMounted, computed } from 'vue'
 
-// Rutas dinámicas basadas en el .env que ya configuraste
-const API_JUGADORES = `${import.meta.env.VITE_API_URL}/players`;
-const API_TORNEOS = `${import.meta.env.VITE_API_URL}/tournaments`;
+const API_JUGADORES = `${import.meta.env.VITE_API_URL}/players`
+const API_TORNEOS   = `${import.meta.env.VITE_API_URL}/tournaments`
+const API_USERS     = `${import.meta.env.VITE_API_URL}/users`
 
-const jugadores = ref([]);
-const torneos = ref([]);
-const cargando = ref(false);
-const errorMsg = ref(null);
-const editandoId = ref(null);
+const jugadores        = ref([])
+const torneos          = ref([])
+const usuarios         = ref([])
+const cargando         = ref(false)
+const errorMsg         = ref(null)
+const editandoId       = ref(null)
 
 const formulario = ref({
-  player1: '',
-  player2: '',
-  category: '4ta',
-  points: 0,
+  user1Id:      '',
+  user2Id:      '',
+  player1:      '',
+  player2:      '',
+  category:     '4ta',
+  points:       0,
   tournamentId: ''
-});
+})
 
-// Mapeo para convertir el texto "1ra", "2da" en números puros (1, 2, 3...)
-const obtenerNumeroCategoria = (catTexto) => {
-  return parseInt(catTexto) || 0;
-};
+// Solo usuarios con rol player
+const usuariosJugadores = computed(() =>
+  usuarios.value.filter(u => u.role === 'player')
+)
 
-// Torneos filtrados que aparecen en el select según la categoría que elegiste para la pareja
+const obtenerNumeroCategoria = (catTexto) => parseInt(catTexto) || 0
+
 const torneosDisponiblesFiltrados = computed(() => {
-  if (!formulario.value.category) return torneos.value;
-  
-  const catJugadorNum = obtenerNumeroCategoria(formulario.value.category);
-  
-  return torneos.value.filter(torneo => {
-    const catTorneoNum = obtenerNumeroCategoria(torneo.category);
-    // Permite solo si el número del torneo es MAYOR o IGUAL (4ta, 5ta, 6ta...)
-    return catTorneoNum >= catJugadorNum;
-  });
-});
+  if (!formulario.value.category) return torneos.value
+  const catJugadorNum = obtenerNumeroCategoria(formulario.value.category)
+  return torneos.value.filter(t => obtenerNumeroCategoria(t.category) >= catJugadorNum)
+})
 
-// Traer la lista de parejas (GET) y de torneos para el select
+// Cuando selecciona usuario 1, auto-completa player1
+function onUser1Change() {
+  const u = usuarios.value.find(u => u.id === formulario.value.user1Id)
+  if (u) formulario.value.player1 = u.name
+}
+
+// Cuando selecciona usuario 2, auto-completa player2
+function onUser2Change() {
+  const u = usuarios.value.find(u => u.id === formulario.value.user2Id)
+  if (u) formulario.value.player2 = u.name
+}
+
 const cargarDatos = async () => {
-  cargando.value = true;
-  errorMsg.value = null;
+  cargando.value = true
+  errorMsg.value = null
   try {
-    // Traemos torneos y jugadores en paralelo
-    const [resJugadores, resTorneos] = await Promise.all([
+    const [resJugadores, resTorneos, resUsers] = await Promise.all([
       fetch(API_JUGADORES),
-      fetch(API_TORNEOS)
-    ]);
-    
-    if (!resJugadores.ok || !resTorneos.ok) throw new Error('Error al conectar con Railway');
-    
-    jugadores.value = await resJugadores.json();
-    torneos.value = await resTorneos.json();
+      fetch(API_TORNEOS),
+      fetch(API_USERS)
+    ])
+    if (!resJugadores.ok || !resTorneos.ok || !resUsers.ok)
+      throw new Error('Error al conectar con Railway')
+
+    jugadores.value = await resJugadores.json()
+    torneos.value   = await resTorneos.json()
+    usuarios.value  = await resUsers.json()
   } catch (err) {
-    errorMsg.value = err.message;
+    errorMsg.value = err.message
   } finally {
-    cargando.value = false;
+    cargando.value = false
   }
-};
+}
 
 const guardarJugador = async () => {
   try {
-    let res;
+    const body = { ...formulario.value }
+    let res
     if (editandoId.value) {
       res = await fetch(`${API_JUGADORES}/${editandoId.value}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formulario.value)
-      });
+        body: JSON.stringify(body)
+      })
     } else {
       res = await fetch(API_JUGADORES, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formulario.value)
-      });
+        body: JSON.stringify(body)
+      })
     }
-    if (!res.ok) throw new Error('Error al guardar la pareja');
-    limpiarFormulario();
-    await cargarDatos();
+    if (!res.ok) throw new Error('Error al guardar la pareja')
+    limpiarFormulario()
+    await cargarDatos()
   } catch (err) {
-    errorMsg.value = err.message;
+    errorMsg.value = err.message
   }
-};
+}
 
 const prepararEdicion = (jugador) => {
-  editandoId.value = jugador.id;
-  formulario.value = { ...jugador };
-};
+  editandoId.value  = jugador.id
+  formulario.value  = { ...jugador }
+}
 
 const eliminarJugador = async (id) => {
-  if (!confirm('¿Eliminar esta pareja?')) return;
+  if (!confirm('¿Eliminar esta pareja?')) return
   try {
-    const res = await fetch(`${API_JUGADORES}/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Error al eliminar');
-    await cargarDatos();
+    const res = await fetch(`${API_JUGADORES}/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Error al eliminar')
+    await cargarDatos()
   } catch (err) {
-    errorMsg.value = err.message;
+    errorMsg.value = err.message
   }
-};
+}
 
-// Función auxiliar para cruzar datos y mostrar el nombre del torneo en la tabla
 const obtenerNombreTorneo = (id) => {
-  const torneo = torneos.value.find(t => t.id === id);
-  return torneo ? torneo.name : 'Sin asignar / Torneo eliminado';
-};
+  const t = torneos.value.find(t => t.id === id)
+  return t ? t.name : 'Sin asignar'
+}
 
 const limpiarFormulario = () => {
-  editandoId.value = null;
-  formulario.value = { player1: '', player2: '', category: '4ta', points: 0, tournamentId: '' };
-};
+  editandoId.value = null
+  formulario.value = { user1Id: '', user2Id: '', player1: '', player2: '', category: '4ta', points: 0, tournamentId: '' }
+}
 
-onMounted(() => {
-  cargarDatos();
-});
+onMounted(cargarDatos)
 </script>
 
 <style scoped>
-.page { padding: 2rem; max-width: 1100px; margin: 0 auto; font-family: sans-serif; }
+.page { padding: 2rem; max-width: 1100px; margin: 0 auto; }
 .page-header h1 { font-size: 1.8rem; color: var(--color-primary); margin: 0 0 1rem; }
 .form-container, .table-container { background: #1e1e1e; color: #fff; padding: 20px; margin-top: 20px; border-radius: 6px; }
 .jugador-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
