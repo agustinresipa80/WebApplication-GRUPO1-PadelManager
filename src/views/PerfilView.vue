@@ -25,6 +25,10 @@
           <span class="puntos-numero">{{ pair.points }}</span>
           <span class="puntos-label">puntos</span>
         </div>
+        <div class="ranking-pos">
+            <span class="ranking-numero">#{{ rankingPos }}</span>
+            <span class="puntos-label">ranking</span>
+        </div>
       </div>
 
       <!-- Estadísticas -->
@@ -103,11 +107,17 @@ import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const API = import.meta.env.VITE_API_URL
-
 const allPlayers = ref([])
 const pair     = ref(null)
 const matches  = ref([])
 const loading  = ref(true)
+
+const rankingPos = computed(() => {
+  if (!pair.value) return '-'
+  const sorted = [...allPlayers.value].sort((a, b) => b.points - a.points)
+  const pos = sorted.findIndex(p => p.id === pair.value.id) + 1
+  return pos
+})
 
 // Solo los partidos donde participó esta pareja
 const myMatches = computed(() =>
@@ -348,5 +358,18 @@ onMounted(loadData)
   .stats-col {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.ranking-pos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ranking-numero {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-secondary);
+  line-height: 1;
 }
 </style>
