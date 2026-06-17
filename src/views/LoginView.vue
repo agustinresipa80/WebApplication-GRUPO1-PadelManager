@@ -40,6 +40,9 @@
           <span v-if="loading">Ingresando...</span>
           <span v-else>Ingresar</span>
         </button>
+          <p class="login-link">
+            ¿No tenés cuenta? <RouterLink to="/register">Registrate</RouterLink>
+          </p>
       </form>
 
       <!-- Ayuda para la demo -->
@@ -198,4 +201,11 @@ async function handleLogin() {
 .demo-hint strong {
   color: var(--color-primary);
 }
+.login-link {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+.login-link a { color: var(--color-primary); font-weight: 600; }
 </style>
