@@ -202,6 +202,13 @@ const cargarDatos = async () => {
 const guardarJugador = async () => {
   try {
     const body = { ...formulario.value }
+
+    // Si es modo manual, limpiamos los IDs de usuario
+    if (modoManual.value) {
+      body.user1Id = ''
+      body.user2Id = ''
+    }
+
     let res
     if (editandoId.value) {
       res = await fetch(`${API_JUGADORES}/${editandoId.value}`, {
