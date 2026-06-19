@@ -8,7 +8,7 @@ Trabajo Práctico Final — Programación en Nuevas Tecnologías 2
 - Vue 3 + Composition API
 - Vue Router 4 (con navigation guards por rol)
 - Pinia (estado global / auth)
-- MockAPI.io (fake REST API)
+- Utilizacion como API la aplicacion de railway.com
 - Chart.js + vue-chartjs (dashboard)
 - Groq API — Llama 3.1 70B (funcionalidades IA)
 
