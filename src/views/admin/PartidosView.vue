@@ -284,7 +284,13 @@ async function saveMatch() {
       pair2Id:      form.pair2Id,
       score1:       form.score1,
       score2:       form.score2,
-      winnerId:     form.winnerId
+      winnerId:     form.winnerId,
+      summary:      ''
+    }
+
+    // Si hay ganador y resultado, generamos la crónica
+    if (form.winnerId && form.score1) {
+      body.summary = await generarCronica({ ...body, id: form.id })
     }
 
     const url    = editing.value ? `${API}/matches/${form.id}` : `${API}/matches`
@@ -307,6 +313,37 @@ async function deleteMatch(id) {
   if (!confirm('¿Seguro que querés eliminar este partido?')) return
   await fetch(`${API}/matches/${id}`, { method: 'DELETE' })
   await loadData()
+}
+
+async function generarCronica(match) {
+  if (!match.winnerId || !match.score1) return
+
+  const pair1 = getPairName(match.pair1Id)
+  const pair2 = getPairName(match.pair2Id)
+  const ganador = getPairName(match.winnerId)
+  const torneo = getTournamentName(match.tournamentId)
+  const fase = capitalize(match.phase)
+
+  const prompt = `Sos un cronista deportivo de pádel. Escribí una crónica breve (máximo 3 oraciones) y emocionante sobre este partido: ${pair1} vs ${pair2} en ${fase} del torneo ${torneo}. Resultado: ${match.score1} / ${match.score2}. Ganador: ${ganador}.`
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8
+      })
+    })
+    const data = await res.json()
+    return data.choices[0].message.content
+  } catch {
+    return ''
+  }
 }
 
 onMounted(loadData)
