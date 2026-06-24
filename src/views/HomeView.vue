@@ -1,6 +1,15 @@
 <template>
   <div class="page">
     <div class="page-header">
+      <!-- Notificación de bienvenida -->
+    <div v-if="!authStore.isAdmin && bienvenida" class="bienvenida" :class="bienvenida.tipo">
+      <span class="bienvenida-icono">{{ bienvenida.icono }}</span>
+      <div>
+        <strong>{{ bienvenida.titulo }}</strong>
+        <p>{{ bienvenida.mensaje }}</p>
+      </div>
+      <button class="bienvenida-close" @click="bienvenida = null">✕</button>
+    </div>
       <h1>Torneos</h1>
       <p class="subtitle">Consultá los torneos activos y próximos</p>
     </div>
@@ -50,20 +59,61 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-const torneos = ref([])
-const loading = ref(true)
-const error   = ref('')
+const authStore = useAuthStore()
+const API = import.meta.env.VITE_API_URL
+
+const torneos    = ref([])
+const loading    = ref(true)
+const error      = ref('')
+const bienvenida = ref(null)
 
 async function fetchTorneos() {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/tournaments`)
+    const res = await fetch(`${API}/tournaments`)
     if (!res.ok) throw new Error('No se pudieron cargar los torneos')
     torneos.value = await res.json()
   } catch (err) {
     error.value = err.message
   } finally {
     loading.value = false
+  }
+}
+
+async function cargarBienvenida() {
+  if (authStore.isAdmin) return
+
+  const user = authStore.user
+  const nombre = user?.name?.split(' ')[0] || 'jugador'
+
+  try {
+    const res = await fetch(`${API}/players`)
+    const players = await res.json()
+
+    const miPareja = players.find(p =>
+      p.user1Id === user?.id || p.user2Id === user?.id
+    )
+
+    if (miPareja) {
+      const resTorneo = await fetch(`${API}/tournaments/${miPareja.tournamentId}`)
+      const torneo = await resTorneo.json()
+      bienvenida.value = {
+        tipo:    'info',
+        icono:   '🎾',
+        titulo:  `¡Bienvenido, ${nombre}!`,
+        mensaje: `Estás inscripto en el torneo "${torneo.name}" — ${torneo.category} categoría.`
+      }
+    } else {
+      bienvenida.value = {
+        tipo:    'warning',
+        icono:   '👋',
+        titulo:  `¡Hola, ${nombre}!`,
+        mensaje: 'Todavía no estás inscripto en ningún torneo. Contactá al administrador para inscribirte.'
+      }
+    }
+  } catch {
+    // Si falla, no mostramos nada
   }
 }
 
@@ -77,7 +127,10 @@ function statusLabel(status) {
   return map[status] || status
 }
 
-onMounted(fetchTorneos)
+onMounted(() => {
+  fetchTorneos()
+  cargarBienvenida()
+})
 </script>
 
 <style scoped>
@@ -158,4 +211,52 @@ onMounted(fetchTorneos)
 }
 
 .btn-ver-fixture:hover { background: #154f8a; }
+
+.bienvenida {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.bienvenida.info {
+  background: #e8f0fb;
+  border-left: 4px solid var(--color-primary);
+}
+
+.bienvenida.warning {
+  background: #fff8e1;
+  border-left: 4px solid #e65100;
+}
+
+.bienvenida-icono { font-size: 1.5rem; }
+
+.bienvenida strong {
+  font-size: 1rem;
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.bienvenida p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #555;
+}
+
+.bienvenida-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.bienvenida-close:hover { color: #333; }
 </style>
