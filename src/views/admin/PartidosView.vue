@@ -133,16 +133,15 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Score Pareja 1</label>
-              <input v-model="form.score1" placeholder="ej: 6-4, 7-5" />
-            </div>
+          <div class="form-group">
+        <label>Resultado de la Pareja 1</label>
+        <input v-model="form.score1" placeholder="ej: 6-4, 7-5" @input="calcularScore2" />
+        <small style="color: #888; font-size: 0.78rem;">El resultado de la Pareja 2 se calcula automáticamente.</small>
+        </div>
 
-            <div class="form-group">
-              <label>Score Pareja 2</label>
-              <input v-model="form.score2" placeholder="ej: 4-6, 3-7" />
-            </div>
+            <div class="form-group" v-if="form.score1">
+              <label>Resultado de la Pareja 2 (calculado)</label>
+              <input :value="form.score2" disabled style="background: #f5f5f5;" />
           </div>
 
           <div class="form-group" v-if="form.pair1Id && form.pair2Id">
@@ -307,6 +306,21 @@ async function saveMatch() {
   } finally {
     saving.value = false
   }
+}
+function calcularScore2() {
+  if (!form.score1) {
+    form.score2 = ''
+    return
+  }
+  // Invierte cada set: "6-4, 7-5" → "4-6, 5-7"
+  form.score2 = form.score1
+    .split(',')
+    .map(set => {
+      const partes = set.trim().split('-')
+      if (partes.length === 2) return `${partes[1]}-${partes[0]}`
+      return set
+    })
+    .join(', ')
 }
 
 async function deleteMatch(id) {
