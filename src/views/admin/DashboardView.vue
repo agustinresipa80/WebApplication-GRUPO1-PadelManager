@@ -2,202 +2,273 @@
   <div class="page">
     <div class="page-header">
       <h1>Dashboard de Estadísticas</h1>
-    </div>
-    
-    <p class="text-muted mb-4">Métricas principales de PadelManager.</p>
-    <p v-if="errorMensaje" style="color: red; font-weight: bold;">{{ errorMensaje }}</p>
-    <div v-if="cargando" class="text-center my-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-      <p class="mt-2 text-muted" style="font-weight: 500;">Trayendo datos de los jugadores...</p>
+      <p class="subtitle">Métricas principales de PadelManager.</p>
     </div>
 
-<div v-else class="chart-container shadow-sm border rounded">
+    <p v-if="errorMensaje" class="error-msg">{{ errorMensaje }}</p>
+
+    <div v-if="cargando" class="state-msg">Cargando estadísticas...</div>
+
+    <template v-else>
+      <!-- Tarjetas de métricas -->
+      <div class="metricas-grid">
+        <div class="metrica-card">
+          <div class="metrica-icono">🏆</div>
+          <div class="metrica-info">
+            <span class="metrica-numero">{{ totalTorneos }}</span>
+            <span class="metrica-label">Torneos totales</span>
+          </div>
+        </div>
+        <div class="metrica-card activos">
+          <div class="metrica-icono">🟢</div>
+          <div class="metrica-info">
+            <span class="metrica-numero">{{ torneosActivos }}</span>
+            <span class="metrica-label">Torneos activos</span>
+          </div>
+        </div>
+        <div class="metrica-card">
+          <div class="metrica-icono">👥</div>
+          <div class="metrica-info">
+            <span class="metrica-numero">{{ totalParejas }}</span>
+            <span class="metrica-label">Parejas inscriptas</span>
+          </div>
+        </div>
+        <div class="metrica-card">
+          <div class="metrica-icono">🎾</div>
+          <div class="metrica-info">
+            <span class="metrica-numero">{{ totalPartidos }}</span>
+            <span class="metrica-label">Partidos jugados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico -->
+      <div class="chart-container">
         <Bar :data="chartData" :options="chartOptions" />
-    </div>
-<div v-if="!cargando && !errorMensaje" class="mt-5 text-center">
-      <button 
-        @click="generarAnalisisIA" 
-        class="btn btn-success btn-lg shadow-sm" 
-        :disabled="cargandoIA"
-        title="Obtiene un consejo basado en los datos actuales"
-      >
-        <span v-if="cargandoIA" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-         Generar Análisis Estratégico con IA
-      </button>
-
-      <div v-if="analisisIA" class="alert alert-info mt-4 text-start shadow-sm border-0 border-start border-4 border-primary bg-light">
-        <h5 class="alert-heading text-primary">Recomendación de PadelManager AI</h5>
-        <hr>
-        <p class="mb-0" style="font-size: 1.1rem; line-height: 1.5;">{{ analisisIA }}</p>
       </div>
-    </div>
+
+      <!-- Botón IA -->
+      <div class="ia-section">
+        <button
+          @click="generarAnalisisIA"
+          class="btn btn-success"
+          :disabled="cargandoIA"
+        >
+          {{ cargandoIA ? 'Generando...' : '🤖 Generar Análisis Estratégico con IA' }}
+        </button>
+
+        <div v-if="analisisIA" class="ia-resultado">
+          <h3>Recomendación de PadelManager AI</h3>
+          <p>{{ analisisIA }}</p>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Bar } from 'vue-chartjs'
-import { 
-  Chart as ChartJS, 
-  Title, 
-  Tooltip, 
-  Legend, 
-  BarElement, 
-  CategoryScale, 
-  LinearScale 
-} from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 
-// Registramos los módulos de Chart.js
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
-// // Datos que se van a llenar dinámicamente con MockAPI
+const API = import.meta.env.VITE_API_URL
+
+const cargando     = ref(true)
+const errorMensaje = ref('')
+const cargandoIA   = ref(false)
+const analisisIA   = ref('')
+const datosConteo  = ref({})
+
+// Métricas
+const totalTorneos   = ref(0)
+const torneosActivos = ref(0)
+const totalParejas   = ref(0)
+const totalPartidos  = ref(0)
+
 const chartData = ref({
-  labels: [], // Lo vaciamos
-  datasets: [
-    {
-      label: 'Parejas Inscriptas por Categoría',
-      backgroundColor: '#0d6efd',
-      borderRadius: 4,
-      data: [] // Lo vaciamos
-    }
-  ]
+  labels: [],
+  datasets: [{
+    label: 'Parejas Inscriptas por Categoría',
+    backgroundColor: '#1B5E9C',
+    borderRadius: 6,
+    data: []
+  }]
 })
 
-// Opciones de diseño del gráfico
 const chartOptions = ref({
   responsive: true,
   maintainAspectRatio: false,
-  plugins: {
-    legend: { position: 'top' }
-  }
+  plugins: { legend: { position: 'top' } },
+  scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
 })
-
-// Variable para controlar el spinner (AGREGAR ESTA LÍNEA)
-const cargando = ref(true)
-
-// Variable para atajar errores si se cae la base de datos
-const errorMensaje = ref('')
-const API_URL = `${import.meta.env.VITE_API_URL}/players` 
-// --- VARIABLES PARA LA IA ---
-const datosConteo = ref({}) 
-const analisisIA = ref('')
-const cargandoIA = ref(false)
 
 const cargarEstadisticas = async () => {
- cargando.value = true
+  cargando.value = true
   try {
-    // 1. Llamada a la API
-    const respuesta = await fetch(API_URL)
-    if (!respuesta.ok) throw new Error('Error al conectar')
-    
-    const jugadores = await respuesta.json()
- if (jugadores.length === 0) throw new Error('No hay jugadores inscriptos todavía.')
-    // 2. Lógica para agrupar: clasificamos por nivel
+    const [resTorneos, resJugadores, resPartidos] = await Promise.all([
+      fetch(`${API}/tournaments`),
+      fetch(`${API}/players`),
+      fetch(`${API}/matches`)
+    ])
+
+    const torneos  = await resTorneos.json()
+    const jugadores = await resJugadores.json()
+    const partidos = await resPartidos.json()
+
+    // Métricas
+    totalTorneos.value   = torneos.length
+    torneosActivos.value = torneos.filter(t => t.status === 'active').length
+    totalParejas.value   = jugadores.length
+    totalPartidos.value  = partidos.filter(p => p.winnerId).length
+
+    // Gráfico
     const conteo = {}
-jugadores.forEach(j => {
-  const cat = j.category || 'Sin categoría'
-  conteo[cat] = (conteo[cat] || 0) + 1
-})
+    jugadores.forEach(j => {
+      const cat = j.category || 'Sin categoría'
+      conteo[cat] = (conteo[cat] || 0) + 1
+    })
+    datosConteo.value = conteo
 
-    datosConteo.value = conteo // AGREGAMOS ESTO PARA LA IA
-
-    // 3. Asignación de datos al gráfico
-    // Usamos esta forma para asegurar que Vue detecte el cambio y actualice el gráfico
     chartData.value = {
       ...chartData.value,
       labels: Object.keys(conteo),
-      datasets: [{
-        ...chartData.value.datasets[0],
-        data: Object.values(conteo)
-      }]
+      datasets: [{ ...chartData.value.datasets[0], data: Object.values(conteo) }]
     }
-    
+
   } catch (error) {
-    console.error("Error al traer datos:", error)
-    errorMensaje.value = 'No se pudieron cargar las estadísticas. Revisa la conexión al servidor.'
+    errorMensaje.value = 'No se pudieron cargar las estadísticas.'
   } finally {
     cargando.value = false
+  }
 }
-}
-// --- FUNCIÓN DE IA ---
+
 const generarAnalisisIA = async () => {
-  if (Object.keys(datosConteo.value).length === 0) return 
-
+  if (Object.keys(datosConteo.value).length === 0) return
   cargandoIA.value = true
-  analisisIA.value = '' 
-
+  analisisIA.value = ''
   try {
     const resumen = Object.entries(datosConteo.value).map(([cat, cant]) => `${cat}: ${cant}`).join(', ')
-    const prompt = `Actúa como un experto administrador de clubes de pádel. Aquí tienes la cantidad de parejas inscriptas por categoría: ${resumen}. Dame una recomendación estratégica corta (máximo 3 renglones) sobre qué tipo de torneo o promoción debería organizar este fin de semana para maximizar la participación.`
+    const prompt = `Actúa como un experto administrador de clubes de pádel. Aquí tienes la cantidad de parejas inscriptas por categoría: ${resumen}. Torneos activos: ${torneosActivos.value}. Partidos jugados: ${totalPartidos.value}. Dame una recomendación estratégica corta (máximo 3 renglones) sobre qué tipo de torneo o promoción debería organizar este fin de semana para maximizar la participación.`
 
     const respuesta = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant', // <--- ACÁ ESTABA EL ERROR. Usamos el modelo actualizado.
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7
-      })
+      headers: { 'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: prompt }], temperature: 0.7 })
     })
 
-    // Agregamos esto para ver el error real si llega a fallar de nuevo
-    if (!respuesta.ok) {
-        const errorDetail = await respuesta.json()
-        console.error("Detalle del error de Groq:", errorDetail)
-        throw new Error('Fallo en la comunicación con Groq')
-    }
-
+    if (!respuesta.ok) throw new Error('Error Groq')
     const data = await respuesta.json()
     analisisIA.value = data.choices[0].message.content
-
-  } catch (error) {
-    console.error("Error IA:", error)
-    analisisIA.value = 'No se pudo generar el consejo inteligente en este momento. Intente más tarde.'
+  } catch {
+    analisisIA.value = 'No se pudo generar el análisis. Intentá de nuevo.'
   } finally {
     cargandoIA.value = false
   }
 }
-// Ejecutamos la función apenas el componente se monta en pantalla
 
-onMounted(() => {
-  cargarEstadisticas()
-})
+onMounted(cargarEstadisticas)
 </script>
 
 <style scoped>
-/* Respetamos las clases globales de tu equipo */
-.page { 
-  padding: 2rem; 
-  max-width: 1100px; 
-  margin: 0 auto; 
-}
-.page-header h1 { 
-  font-size: 1.8rem; 
-  color: var(--color-primary); 
-  margin: 0 0 1rem; 
+.page { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+.page-header h1 { font-size: 1.8rem; color: var(--color-primary); margin: 0 0 0.25rem; }
+.subtitle { color: var(--color-text-muted); margin: 0 0 1.5rem; }
+.state-msg { text-align: center; color: var(--color-text-muted); padding: 3rem; }
+.error-msg { color: #c0392b; font-weight: 600; margin-bottom: 1rem; }
+
+/* Tarjetas */
+.metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Le damos un alto fijo al contenedor del gráfico para que no se deforme */
+.metrica-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+
+.metrica-card:hover { transform: translateY(-2px); }
+.metrica-card.activos { border-left: 4px solid #2E7D32; }
+
+.metrica-icono { font-size: 2rem; }
+
+.metrica-info { display: flex; flex-direction: column; }
+
+.metrica-numero {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.metrica-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Gráfico */
 .chart-container {
-  height: 400px;
-  width: 100%;
-  max-width: 700px;
-  background-color: white;
+  height: 350px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
   padding: 1.5rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+}
+
+/* IA */
+.ia-section { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+
+.btn-success {
+  background: #2E7D32;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-success:hover:not(:disabled) { background: #1B5E20; }
+.btn-success:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.ia-resultado {
+  width: 100%;
+  background: #e8f0fb;
+  border-left: 4px solid var(--color-primary);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+}
+
+.ia-resultado h3 {
+  color: var(--color-primary);
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.ia-resultado p {
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 768px) {
-  .chart-container {
-    height: 300px;
-    padding: 1rem;
-  }
-  .page {
-    padding: 1rem;
-  }
+  .metricas-grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-container { height: 250px; }
 }
 </style>
