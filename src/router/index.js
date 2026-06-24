@@ -51,16 +51,22 @@ const routes = [
     component: () => import('@/views/admin/PartidosView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
-  // Catch-all
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/'
-  },
   {
     path: '/register',
     name: 'Register',
     component: () => import('@/views/RegisterView.vue'),
     meta: { requiresGuest: true }
+  },
+  {
+    path: '/ranking',
+    name: 'Ranking',
+    component: () => import('@/views/RankingView.vue'),
+    meta: { requiresAuth: true }
+  },
+  // Catch-all
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 

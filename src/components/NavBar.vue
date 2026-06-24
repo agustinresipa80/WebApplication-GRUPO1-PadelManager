@@ -18,6 +18,7 @@
         <li><RouterLink to="/admin/torneos">Gestión Torneos</RouterLink></li>
         <li><RouterLink to="/admin/jugadores">Jugadores</RouterLink></li>
         <li><RouterLink to="/admin/partidos">Partidos</RouterLink></li>
+        <li><RouterLink to="/ranking">Ranking</RouterLink></li>
       </template>
     </ul>
 
