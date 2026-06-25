@@ -2,19 +2,21 @@
   <nav class="navbar">
     <div class="navbar-brand">
   <RouterLink to="/" class="brand-link">
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="18" cy="18" r="18" fill="rgba(255,255,255,0.15)"/>
-      <rect x="7" y="8" width="5" height="20" rx="2.5" fill="white"/>
-      <path d="M12 8 Q24 8 24 16 Q24 24 12 24" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="24" cy="16" r="7" fill="#2E7D32"/>
-      <path d="M17 11 Q24 9 31 11" fill="none" stroke="white" stroke-width="1.5"/>
-      <path d="M17 21 Q24 23 31 21" fill="none" stroke="white" stroke-width="1.5"/>
-    </svg>
-    <div class="brand-text">
-      <span class="brand-padel">Padel</span>
-      <span class="brand-manager">Manager</span>
-    </div>
-  </RouterLink>
+  <svg width="40" height="40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="100" r="95" fill="#1a3f7a"/>
+    <circle cx="100" cy="100" r="90" fill="#1e4d96"/>
+    <line x1="68" y1="55" x2="68" y2="155" stroke="white" stroke-width="18" stroke-linecap="round"/>
+    <path d="M68 55 Q68 40 88 40 Q120 40 128 65 Q136 90 115 105 Q100 112 68 112" fill="none" stroke="white" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="118" cy="72" r="24" fill="#6aab28"/>
+    <path d="M97 60 Q118 52 139 60" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M97 84 Q118 92 139 84" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="109" cy="63" r="6" fill="rgba(255,255,255,0.2)"/>
+  </svg>
+  <div class="brand-text">
+    <span class="brand-padel">Padel</span>
+    <span class="brand-manager">Manager</span>
+  </div>
+</RouterLink>
 </div>
 
     <ul class="navbar-links">
