@@ -2,10 +2,21 @@
   <div class="login-page">
     <div class="login-card">
       <div class="login-header">
-        <span class="login-icon">🎾</span>
-        <h1>PadelManager</h1>
-        <p>Iniciá sesión para continuar</p>
-      </div>
+  <div class="login-logo">
+    <svg width="64" height="64" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="18" cy="18" r="18" fill="#1B5E9C"/>
+      <rect x="7" y="8" width="5" height="20" rx="2.5" fill="white"/>
+      <path d="M12 8 Q24 8 24 16 Q24 24 12 24" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="24" cy="16" r="7" fill="#2E7D32"/>
+      <path d="M17 11 Q24 9 31 11" fill="none" stroke="white" stroke-width="1.5"/>
+      <path d="M17 21 Q24 23 31 21" fill="none" stroke="white" stroke-width="1.5"/>
+    </svg>
+  </div>
+  <div class="brand-text-login">
+    <span class="brand-padel-login">Padel</span><span class="brand-manager-login">Manager</span>
+  </div>
+  <p>Iniciá sesión para continuar</p>
+</div>
 
       <form class="login-form" @submit.prevent="handleLogin">
         <div class="form-group">
@@ -110,12 +121,6 @@ async function handleLogin() {
   font-size: 2.5rem;
 }
 
-.login-header h1 {
-  margin: 0.5rem 0 0.25rem;
-  font-size: 1.8rem;
-  color: var(--color-primary);
-}
-
 .login-header p {
   color: #666;
   font-size: 0.95rem;
@@ -208,4 +213,27 @@ async function handleLogin() {
   margin: 0;
 }
 .login-link a { color: var(--color-primary); font-weight: 600; }
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.brand-text-login {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.brand-padel-login {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.brand-manager-login {
+  font-size: 2rem;
+  font-weight: 400;
+  color: #333;
+}
 </style>
