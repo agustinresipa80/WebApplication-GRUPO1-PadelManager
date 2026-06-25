@@ -48,12 +48,8 @@
         <!-- Modo manual -->
         <template v-else>
           <div class="form-group">
-            <label>Jugador 1 (Nombre completo):</label>
+            <label>Nombre del jugador:</label>
             <input type="text" v-model="formulario.player1" placeholder="Ej: Juan Pérez" />
-          </div>
-          <div class="form-group">
-            <label>Jugador 2 (Nombre completo):</label>
-            <input type="text" v-model="formulario.player2" placeholder="Ej: Martín Gómez" />
           </div>
         </template>
 
@@ -110,7 +106,7 @@
         <tbody>
           <tr v-for="j in jugadores" :key="j.id">
             <td><strong>{{ j.player1 }}</strong></td>
-            <td><strong>{{ j.player2 }}</strong></td>
+            <td><strong>{{ j.player2 === 'N/A' ? '—' : j.player2 }}</strong></td>
             <td>{{ j.category }}</td>
             <td>{{ j.points }} pts</td>
             <td>{{ obtenerNombreTorneo(j.tournamentId) }}</td>
@@ -205,9 +201,10 @@ const guardarJugador = async () => {
 
     // Si es modo manual, limpiamos los IDs de usuario
     if (modoManual.value) {
-      body.user1Id = ''
-      body.user2Id = ''
-    }
+  body.user1Id = ''
+  body.user2Id = ''
+  body.player2 = 'N/A' // ← jugador individual no tiene compañero
+}
 
     let res
     if (editandoId.value) {
