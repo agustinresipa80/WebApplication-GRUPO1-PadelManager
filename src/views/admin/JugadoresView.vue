@@ -79,7 +79,7 @@
 
         <div class="actions">
           <button type="submit" class="btn-submit">
-            {{ editandoId ? 'Guardar Cambios' : 'Registrar Pareja' }}
+            {{ editandoId ? 'Guardar Cambios' : 'Registrar' }}
           </button>
           <button type="button" v-if="editandoId" @click="limpiarFormulario" class="btn-cancel">
             Cancelar
