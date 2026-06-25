@@ -1,8 +1,21 @@
 <template>
   <nav class="navbar">
     <div class="navbar-brand">
-      <RouterLink to="/">🎾 PadelManager</RouterLink>
+  <RouterLink to="/" class="brand-link">
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="18" cy="18" r="18" fill="rgba(255,255,255,0.15)"/>
+      <rect x="7" y="8" width="5" height="20" rx="2.5" fill="white"/>
+      <path d="M12 8 Q24 8 24 16 Q24 24 12 24" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="24" cy="16" r="7" fill="#2E7D32"/>
+      <path d="M17 11 Q24 9 31 11" fill="none" stroke="white" stroke-width="1.5"/>
+      <path d="M17 21 Q24 23 31 21" fill="none" stroke="white" stroke-width="1.5"/>
+    </svg>
+    <div class="brand-text">
+      <span class="brand-padel">Padel</span>
+      <span class="brand-manager">Manager</span>
     </div>
+  </RouterLink>
+</div>
 
     <ul class="navbar-links">
       <!-- Links comunes (jugador y admin) -->
@@ -65,12 +78,29 @@ function handleLogout() {
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
-.navbar-brand a {
-  font-size: 1.2rem;
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand-padel {
+  font-size: 1rem;
   font-weight: 700;
   color: white;
-  text-decoration: none;
-  white-space: nowrap;
+}
+
+.brand-manager {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.8);
 }
 
 .navbar-links {
